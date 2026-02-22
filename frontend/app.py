@@ -9,58 +9,99 @@ import time
 
 # Page configuration
 st.set_page_config(
-    page_title="Smartphone Sales Intelligence",
+    page_title="Sale Caster",
     page_icon="📱",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
-st.markdown("""
+# Initialize theme in session state early (needed before CSS)
+if 'theme' not in st.session_state:
+    st.session_state.theme = 'dark'
+
+# Dynamic CSS based on theme
+def apply_theme(theme):
+    if theme == 'dark':
+        bg          = '#000000'
+        bg2         = '#111111'
+        sidebar_bg  = '#111111'
+        text        = '#ffffff'
+        accent      = '#FFD700'
+        label_color = '#FFD700'
+        slider_text = '#ffffff'
+        input_bg    = '#1a1a1a'
+        input_bdr   = '#FFD700'
+        kpi_card_bg = '#111111'
+        kpi_value   = '#ffffff'
+        kpi_caption = '#aaaaaa'
+        chat_text   = '#ffffff'
+        tick_color  = '#ffffff'
+        radio_text  = '#ffffff'
+    else:
+        bg          = '#f5f7fa'
+        bg2         = '#ffffff'
+        sidebar_bg  = '#ffffff'
+        text        = '#1a1a2e'
+        accent      = '#5a189a'
+        label_color = '#5a189a'
+        slider_text = '#1a1a2e'
+        input_bg    = '#ffffff'
+        input_bdr   = '#5a189a'
+        kpi_card_bg = '#ffffff'
+        kpi_value   = '#1a1a2e'
+        kpi_caption = '#666666'
+        chat_text   = '#1a1a2e'
+        tick_color  = '#1a1a2e'
+        radio_text  = '#1a1a2e'
+
+    st.markdown(f"""
 <style>
-    .stApp {
-        background-color: #000000 !important;
-        color: #ffffff;
-    }
-    header[data-testid="stHeader"] {
-        background-color: #000000 !important;
-    }
-    [data-testid="stDecoration"] {
-        background-color: #000000 !important;
+    .stApp {{
+        background-color: {bg} !important;
+        color: {text};
+    }}
+    header[data-testid="stHeader"] {{
+        background-color: {bg} !important;
+    }}
+    [data-testid="stDecoration"] {{
+        background-color: {bg} !important;
         background-image: none !important;
-    }
-    [data-testid="stToolbar"] {
-        background-color: #000000 !important;
-    }
-    .stMainBlockContainer, [data-testid="stMainBlockContainer"] {
-        background-color: #000000 !important;
-    }
-    [data-testid="stSidebar"] {
-        background-color: #111111 !important;
-    }
+    }}
+    [data-testid="stToolbar"] {{
+        background-color: {bg} !important;
+    }}
+    .stMainBlockContainer, [data-testid="stMainBlockContainer"] {{
+        background-color: {bg} !important;
+    }}
+    [data-testid="stSidebar"] {{
+        background-color: {sidebar_bg} !important;
+    }}
     [data-testid="stSidebar"] h1,
     [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3,
     [data-testid="stSidebar"] label,
     [data-testid="stSidebar"] .stRadio label,
-    [data-testid="stSidebar"] p {
-        color: #FFD700 !important;
-    }
-    h1, h2, h3, .stSubheader {
-        color: #FFD700 !important;
-    }
-    [data-testid="stMetricValue"] {
-        color: #ffffff !important;
+    [data-testid="stSidebar"] p {{
+        color: {label_color} !important;
+    }}
+    h1, h2, h3, .stSubheader {{
+        color: {accent} !important;
+    }}
+    p, li, span, div {{
+        color: {text};
+    }}
+    [data-testid="stMetricValue"] {{
+        color: {kpi_value} !important;
         font-size: 2rem !important;
         font-weight: bold !important;
-    }
-    [data-testid="stMetricLabel"] {
-        color: #ffffff !important;
-    }
-    [data-testid="stMetricDelta"] {
-        color: #00e676 !important;
-    }
-    .stButton>button {
+    }}
+    [data-testid="stMetricLabel"] {{
+        color: {text} !important;
+    }}
+    [data-testid="stMetricDelta"] {{
+        color: #00c853 !important;
+    }}
+    .stButton>button {{
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border-radius: 10px;
@@ -68,73 +109,95 @@ st.markdown("""
         border: none;
         font-weight: bold;
         transition: all 0.3s ease;
-    }
-    .stButton>button:hover {
+    }}
+    .stButton>button:hover {{
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    }
-    .stTextInput>div>div>input {
-        background-color: #1a1a1a;
-        color: white;
+    }}
+    .stTextInput>div>div>input {{
+        background-color: {input_bg};
+        color: {text};
         border-radius: 10px;
-        border: 1px solid #FFD700;
-    }
-    .kpi-card {
-        background-color: #111111;
+        border: 1px solid {input_bdr};
+    }}
+    .stChatInputContainer textarea {{
+        background-color: {input_bg} !important;
+        color: {text} !important;
+        border: 1px solid {input_bdr} !important;
+    }}
+    .kpi-card {{
+        background-color: {kpi_card_bg};
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
         margin-bottom: 10px;
-    }
-    .kpi-bar {
+    }}
+    .kpi-bar {{
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         padding: 10px 16px;
         font-size: 0.95rem;
         font-weight: 600;
         color: #ffffff;
         letter-spacing: 0.5px;
-    }
-    .kpi-body {
+    }}
+    .kpi-body {{
         padding: 12px 16px 8px 16px;
-    }
-    .kpi-value {
+    }}
+    .kpi-value {{
         font-size: 2rem;
         font-weight: 700;
-        color: #ffffff;
+        color: {kpi_value};
         line-height: 1.1;
-    }
-    .kpi-delta {
+    }}
+    .kpi-delta {{
         font-size: 0.85rem;
-        color: #00e676;
+        color: #00c853;
         margin-top: 4px;
-    }
-    .kpi-caption {
+    }}
+    .kpi-caption {{
         font-size: 0.78rem;
-        color: #aaaaaa;
+        color: {kpi_caption};
         margin-top: 6px;
-    }
-    .stSelectbox label {
-        color: #FFD700 !important;
-    }
-    .stSlider label {
-        color: #ffffff !important;
-    }
+    }}
+    .stSelectbox label {{
+        color: {label_color} !important;
+    }}
+    .stSlider label {{
+        color: {slider_text} !important;
+    }}
     [data-testid="stTickBarMin"],
-    [data-testid="stTickBarMax"] {
-        color: #ffffff !important;
-    }
-    .chat-message {
+    [data-testid="stTickBarMax"] {{
+        color: {tick_color} !important;
+    }}
+    [data-testid="stRadio"] label p,
+    [data-testid="stRadio"] > label,
+    [data-testid="stRadio"] div[data-testid="stWidgetLabel"] p,
+    .stRadio label p,
+    .stRadio > div > label {{
+        color: {radio_text} !important;
+    }}
+    .chat-message {{
         padding: 15px;
         border-radius: 15px;
         margin-bottom: 10px;
         animation: fadeIn 0.5s ease;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    }}
+    [data-testid="stChatMessage"] p,
+    [data-testid="stChatMessage"] li,
+    [data-testid="stChatMessage"] span,
+    [data-testid="stChatMessageContent"] p,
+    [data-testid="stChatMessageContent"] li,
+    [data-testid="stChatMessageContent"] span {{
+        color: {chat_text} !important;
+    }}
+    @keyframes fadeIn {{
+        from {{ opacity: 0; transform: translateY(10px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+    }}
 </style>
 """, unsafe_allow_html=True)
+
+apply_theme(st.session_state.theme)
 
 # Backend API URL
 API_URL = "http://localhost:8000"
@@ -148,6 +211,7 @@ if 'selected_model' not in st.session_state:
     st.session_state.selected_model = "iPhone 13"
 if 'forecast_generated' not in st.session_state:
     st.session_state.forecast_generated = False
+# theme already initialized above (before CSS)
 
 # Brand and model data from improved dataset
 brands_models = {
@@ -178,7 +242,15 @@ brands_models = {
 
 # Sidebar
 st.sidebar.image("https://img.icons8.com/fluency/96/000000/smartphone.png", width=80)
-st.sidebar.title("📱 Smartphone Sales Intelligence")
+st.sidebar.title("📱 Sale caster")
+
+# Theme toggle button
+_is_dark = st.session_state.theme == 'dark'
+_toggle_label = "☀️ Light Mode" if _is_dark else "🌙 Dark Mode"
+if st.sidebar.button(_toggle_label, use_container_width=True):
+    st.session_state.theme = 'light' if _is_dark else 'dark'
+    st.rerun()
+
 st.sidebar.markdown("---")
 
 # Brand selection in sidebar
@@ -486,7 +558,7 @@ elif page == "🔮 Forecasting":
         ))
         
         fig.update_layout(
-            title=f'Sales Forecast for {st.session_state.selected_model}',
+            title=dict(text=f'Sales Forecast for {st.session_state.selected_model}', font=dict(color='#ffffff')),
             xaxis_title='Date',
             yaxis_title='Predicted Sales (Units)',
             plot_bgcolor='rgba(0,0,0,0)',
